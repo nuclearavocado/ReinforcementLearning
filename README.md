@@ -16,10 +16,10 @@ This is a library of deep learning algorithms and architectures, covering superv
 - [ ] [NPG](https://papers.nips.cc/paper/2073-a-natural-policy-gradient.pdf) (Natural Policy Gradient)
 - [ ] [TRPO](https://arxiv.org/abs/1502.05477) (Trust Region Policy Optimization)
 - [x] [PPO](https://arxiv.org/abs/1707.06347) (Proximal Policy Optimization)
-- [ ] DQN (Deep Q-Learning Network)
-- [ ] DDPG (Deep Deterministic Policy Gradient)
+- [ ] [DQN](https://arxiv.org/abs/1312.5602) (Deep Q-Learning Network)
+- [ ] [DDPG](https://arxiv.org/abs/1509.02971) (Deep Deterministic Policy Gradient)
 - [ ] [HER](https://arxiv.org/abs/1707.01495) (Hindsight Experience Replay)
-- [ ] TD3 (Twin Delayed DDPG)
+- [ ] [TD3](https://arxiv.org/abs/1802.09477) (Twin Delayed DDPG)
 - [ ] [SAC](https://arxiv.org/abs/1801.01290) (Soft Actor-Critic)
 
 ## Update Info
