@@ -22,7 +22,7 @@ Features in service of the first goal:
 - Extensible. New modules should be simple to add, and have a consistent API, with inheritance of functionality from their algorithmic predecessors.
 
 Features in service of the second goal:
-- Algorithmic clarity. The code should be as close to the pseudocode found in the paper as possible, such that it is readable enough to learn from. The backend should not interrupt the flow of the algorithm (I don't want random MPI calls mixed up with a new RL algorithm I'm trying to learn). Conversely, key parts of the algorithm itself should not be abstracted away for ease of use when calling from the terminal, etc.
+- Algorithmic clarity. The code should be as close to the pseudocode found in the paper as possible, such that it is readable enough to learn from. The backend should not interrupt the flow of the algorithm (I don't want random MPI calls mixed up with a new RL algorithm I'm trying to learn). Conversely, key parts of the algorithm itself should not be abstracted away for ease of use when calling from the terminal, etc. (A combination of these two problems is the primary failure mode of all reinforcement-learning libraries, except for [Spinning Up](https://spinningup.openai.com/))
 - Inheritance. This allows the reader can see the "family-tree" of the algorithm (e.g. REINFORCE -> VPG -> NPG -> TRPO), and determine the required prerequisite knowledge from the simpler algorithms before tackling the more complex ones.
 
 ## Supervised Learning Architectures
