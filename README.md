@@ -2,6 +2,29 @@
 
 This is a library of deep learning algorithms and architectures, covering supervised-, unsupervised- and reinforcement-learning.
 
+## Guiding principles
+There are many deep learning libraries out there, [so why add another one](https://xkcd.com/927/)?
+
+![xkcd standards](https://imgs.xkcd.com/comics/standards.png)
+
+This library originates specifically from frustrations encountered with reinforcement-learning library implementations, including [OpenAI's Baselines](https://github.com/openai/baselines/), [OpenAI's SpinningUp](https://github.com/openai/spinningup/), and [Ashley Hill's Stable Baselines](https://github.com/hill-a/stable-baselines).
+
+[Keras](https://keras.io) set the bar for how a real deep-learning library should be built, and this is an attempt to continue in that tradition.
+
+Inspired by [Keras](https://keras.io), this library is designed for human beings. Specifically: human beings as dumb as me.
+There are two goals:
+1. Enable fast experimentation (something achieved by [Keras](https://keras.io))
+2. Didactic (something achieved by [Spinning Up](https://spinningup.openai.com/))
+
+Features in service of the first goal: 
+- User friendly. There should be a simple sequence of API calls that minimize the number of user actions required for common use cases.
+- Modular. The library should be built around modules that can be easily be added, subtracted and rearranged. For example, transformers and GANs should be standalone modules that can be added to a reinforcement-learning model architecture with a single line of code.
+- Extensible. New modules should be simple to add, and have a consistent API, with inheritance of functionality from their algorithmic predecessors.
+
+Features in service of the second goal:
+- Algorithmic clarity. The code should be as close to the pseudocode found in the paper as possible, such that it is readable enough to learn from. The backend should not interrupt the flow of the algorithm (I don't want random MPI calls mixed up with a new RL algorithm I'm trying to learn). Conversely, key parts of the algorithm itself should not be abstracted away for ease of use when calling from the terminal, etc.
+- Inheritance. This allows the reader can see the "family-tree" of the algorithm (e.g. REINFORCE -> VPG -> NPG -> TRPO), and determine the required prerequisite knowledge from the simpler algorithms before tackling the more complex ones.
+
 ## Supervised Learning Architectures
 - [ ] [Inception]()
 - [ ] [Transformer](https://arxiv.org/abs/1706.03762)
@@ -39,23 +62,6 @@ This is a library of deep learning algorithms and architectures, covering superv
 
 ## Code Structures
 #TODO: Complete
-
-## Main design considerations catalyzing the need for a custom library
-- To be easy to use (inspired by Keras, scikit-learn etc.)
-- To be a learning tool: the underlying code is meant to be read, not abstracted away
-- To copy the layout of algorithms as defined in papers
-
-### Ashley Hill's criticisms levelled at OpenAI's Baselines:
-- No unified structure for algorithms and undocumented functions and classes
-- No custom policies for DDPG; only available from the run script
-- Common interface only available via the run script
-- Rudimentary logging of training information (no loss nor graph)
-- Ipython / Notebook unfriendly
-- No custom callbacks except for DQN
-- Not PEP8 compliant (subsequently fixed)
-- Code build now considered failing
-- Latest RL algorithms, e.g. SAC and TD3 are not included
-- Only HER support for DDPG
 
 ## Acknowledgements
 The main library that inspired this work is François Chollet's Keras, followed by the scikit-learn interface.
