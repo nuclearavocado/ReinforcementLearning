@@ -67,6 +67,10 @@ For example, to train a VPG agent on Cartpole-v1:
 ```
 python launch.py --algo vpg
 ```
+To visualise training, this library uses Tensorboard.
+```
+tensorboard --logdir=./graphs
+```
 ## Code Structures
 #TODO: Complete
 
