@@ -3,7 +3,7 @@ import gym
 
 def get_args():
     parser = argparse.ArgumentParser(description='A description of the repo')
-    parser.add_argument('--env-name', type=str, default='CartPole-v1',
+    parser.add_argument('--env', type=str, default='CartPole-v1',
                         help='the environment name (default: CartPole-v1)')
     parser.add_argument('--algo', type=str, default='reinforce',
                         help='which RL algorithm to use (default: reinforce)')
