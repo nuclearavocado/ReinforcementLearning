@@ -51,14 +51,14 @@ Features in service of the second goal:
 ## TODO List
 #TODO: Complete
 
-## Requirments
+## Requirements
 - pytorch=1.3.1
 - gym=0.14.0
 
 ## Installation
 #TODO: Complete
 
-## Instruction
+## Instructions
 Train an agent:
 ```
 python launch.py --<arguments>
