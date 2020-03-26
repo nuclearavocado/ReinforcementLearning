@@ -48,7 +48,7 @@ class TensorBoardLogger(TabularLogger):
     def __init__(self, args):
         from torch.utils.tensorboard import SummaryWriter
         super().__init__()
-        dir_name = f"./graphs/{printISO8601().replace(':', '_')}_{args.algo}_{args.env_name}_batch_size_{args.n_batches}_{args.buffer}_{args.model}_{args.policy}"
+        dir_name = f"./graphs/{printISO8601().replace(':', '_')}_{args.algo}_{args.env}_batch_size_{args.n_batches}_{args.buffer}_{args.model}_{args.policy}"
         self.writer = SummaryWriter(log_dir=dir_name)
 
     def dump_logs(self, iteration, log_interval, reward_threshold=None):
