@@ -48,7 +48,7 @@ def vpg(env, env_params):
     return agent
 
 def main(args):
-    env = gym.make(args.env_name)
+    env = gym.make(args.env)
     # env = gym.make('EURUSD-v0')
     env_params = arguments.get_env_params(env, args)
 
