@@ -35,15 +35,16 @@ class GaussianPolicy:
         pass
 
     def sample_actions(model, obs):
+        pass
         # # Handle discrete vs. continuous environments
         # if not self.env_params['discrete_env']: # Continuous
-        with torch.no_grad():
-            # Get the mean from the policy
-            mean = model(torch.from_numpy(obs).float())
-            log_std = log_std.expand_as(mean)
-            std = torch.exp(model.log_sigma)
-            distribution = Normal(mean, std)
-            actions = distribution.sample()
-            log_probs = distribution.log_prob(actions).sum(dim=1, keepdim=True) # gaussian_likelihood
-            entropy = distribution.entropy().mean()
-            return actions.numpy().squeeze(0), log_probs, entropy
+#         with torch.no_grad():
+#             # Get the mean from the policy
+#             mean = model(torch.from_numpy(obs).float())
+#             log_std = log_std.expand_as(mean)
+#             std = torch.exp(model.log_sigma)
+#             distribution = Normal(mean, std)
+#             actions = distribution.sample()
+#             log_probs = distribution.log_prob(actions).sum(dim=1, keepdim=True) # gaussian_likelihood
+#             entropy = distribution.entropy().mean()
+#             return actions.numpy().squeeze(0), log_probs, entropy
