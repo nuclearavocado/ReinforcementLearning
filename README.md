@@ -38,7 +38,7 @@ Features in service of the second goal:
 - [ ] A2C (Advantage Actor-Critic)
 - [ ] [NPG](https://papers.nips.cc/paper/2073-a-natural-policy-gradient.pdf) (Natural Policy Gradient)
 - [ ] [TRPO](https://arxiv.org/abs/1502.05477) (Trust Region Policy Optimization)
-- [x] [PPO](https://arxiv.org/abs/1707.06347) (Proximal Policy Optimization)
+- [ ] [PPO](https://arxiv.org/abs/1707.06347) (Proximal Policy Optimization)
 - [ ] [DQN](https://arxiv.org/abs/1312.5602) (Deep Q-Learning Network)
 - [ ] [DDPG](https://arxiv.org/abs/1509.02971) (Deep Deterministic Policy Gradient)
 - [ ] [HER](https://arxiv.org/abs/1707.01495) (Hindsight Experience Replay)
@@ -59,14 +59,16 @@ Features in service of the second goal:
 #TODO: Complete
 
 ## Instructions
-Train an agent:
+To train an agent, run:
 ```
 python launch.py --<arguments>
 ```
-For example, to train a VPG agent on Cartpole-v1:
+For example, to train a VPG agent on Acrobot-v1 and render it:
 ```
-python launch.py --algo vpg
+python launch.py --algo vpg --env Acrobot-v1 --render
 ```
+(The default arguments train a REINFORCE agent on CartPole-v1.)
+
 To visualise training, this library uses Tensorboard.
 ```
 tensorboard --logdir=./graphs
