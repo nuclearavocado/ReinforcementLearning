@@ -58,8 +58,14 @@ Features in service of the second goal:
 #TODO: Complete
 
 ## Instruction
-#TODO: Complete
-
+Train an agent:
+```
+python launch.py --<arguments>
+```
+For example, to train a VPG agent on Cartpole-v1:
+```
+python launch.py --algo vpg
+```
 ## Code Structures
 #TODO: Complete
 
