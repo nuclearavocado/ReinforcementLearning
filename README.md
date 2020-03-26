@@ -46,17 +46,17 @@ Features in service of the second goal:
 - [ ] [SAC](https://arxiv.org/abs/1801.01290) (Soft Actor-Critic)
 
 ## Update Info
-:rocket: **2020-03-21** - Launch!  
-
-## TODO List
-#TODO: Complete
+:rocket: **2020-03-21** - Launch!
 
 ## Requirements
 - pytorch=1.3.1
 - gym=0.14.0
 
 ## Installation
-#TODO: Complete
+Download and unzip the repository, or run:
+```
+git clone git@github.com:nuclearavocado/deep-learning.git
+```
 
 ## Instructions
 To train an agent, run:
@@ -73,7 +73,8 @@ To visualise training, this library uses Tensorboard.
 ```
 tensorboard --logdir=./graphs
 ```
-## Code Structures
+
+## Code Structure
 #TODO: Complete
 
 ## Acknowledgements
