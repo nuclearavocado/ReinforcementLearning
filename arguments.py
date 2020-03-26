@@ -31,10 +31,7 @@ def get_args():
                         help='render the environment')
     parser.add_argument('--log-interval', type=int, default=10,
                         help='interval between training status logs (default: 10)')
-    parser.add_argument('--image-size', nargs=2, metavar=('width', 'height'), type=int, default=(64, 64),
-                        help='size of the image to pass to the CNN')
     args = parser.parse_args()
-    args.image_size = tuple(args.image_size)
     return args
 
 def get_env_params(env, args):
@@ -43,7 +40,6 @@ def get_env_params(env, args):
     env_params = {'observation_space': env.observation_space,
              'action_space': env.action_space, # alternative gets class name: env.action_space.__class__.__name__
              'max_timesteps': env._max_episode_steps,
-             # 'max_timesteps': int(1e16),
              }
 
     # Action space
@@ -63,10 +59,5 @@ def get_env_params(env, args):
         env_params['observations'] = obs.shape[0]
     else:
         env_params['observations'] = obs.shape[0]
-
-    # If image based
-    # env_params['image_size'] = env.render(mode='rgb_array').shape
-    # env_params['resized_image_size'] = tuple(args.image_size) + (env_params['image_size'][2],)
-    # env.close()
 
     return env_params
