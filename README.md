@@ -3,10 +3,9 @@
 This is a library of deep learning algorithms and architectures, covering supervised-, unsupervised- and reinforcement-learning.
 
 ## Guiding principles
-There are many deep learning libraries out there, [so why add another one](https://xkcd.com/927/)?
-
 ![xkcd standards](https://imgs.xkcd.com/comics/standards.png)
 
+There are many deep learning libraries out there, so why add another one?
 This library originates specifically from frustrations encountered with reinforcement-learning library implementations, including [OpenAI's Baselines](https://github.com/openai/baselines/), [OpenAI's SpinningUp](https://github.com/openai/spinningup/), and [Ashley Hill's Stable Baselines](https://github.com/hill-a/stable-baselines).
 
 [Keras](https://keras.io) set the bar for how a real deep-learning library should be built, and this is an attempt to continue in that tradition.
