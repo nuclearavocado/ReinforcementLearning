@@ -52,7 +52,8 @@ Features in service of the second goal:
 #TODO: Complete
 
 ## Requirments
-#TODO: Complete
+- pytorch=1.3.1
+- gym=0.14.0
 
 ## Installation
 #TODO: Complete
