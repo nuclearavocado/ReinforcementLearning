@@ -74,11 +74,10 @@ tensorboard --logdir=./graphs
 ```
 
 ## Code Structure
-#TODO: Complete
-The main file is launch.py. This collects the various elements required to run a reinforcement learning agent, as defined by the input arguments. This includes the environment (e.g. CartPole-v1), type of agent algorithm (e.g. REINFORCE, DQN, etc.), type of replay buffer (e.g. HER), type of policy (e.g. Gaussian/Categorical), and sets up a logger for printing the reward and saving data for graphs in TensorBoard etc.
+The main file is _launch.py_. This collects the various elements required to run a reinforcement learning agent, as defined by the input arguments. This includes the environment (e.g. CartPole-v1), type of agent algorithm (e.g. REINFORCE, DQN, etc.), type of replay buffer (e.g. HER), type of policy (e.g. Gaussian/Categorical), and sets up a logger for printing the reward and saving data for graphs in TensorBoard etc.
 
-launch.py then runs agent.train()
-The train() function is located in base_agent.py, the class from which all RL-algorithms inherit. It consists of an environment sampling step, followed by a network update step:
+_launch.py_ then runs _agent.train()_
+The _train()_ function is located in _base_agent.py_, the class from which all RL-algorithms inherit. It consists of an environment sampling step, followed by a network update step:
 ```
 def train(self):
         for self.episode in range(self.args.n_epochs):
@@ -140,7 +139,7 @@ def _update(self):
         # Update networks
         self._update_networks(mb)
 ```
-Each RL-algorithm then has its own way in which it performs \_get_nn_outputs(), \_process_trajectories(), and \_update_networks(), which can be found in the <Agent> class in the corresponding <agent>.py file.
+Each RL-algorithm then has its own way in which it performs _\_get_nn_outputs()_, _\_process_trajectories()_, and _\_update_networks()_, which can be found in the _\< Agent \>_ class in the corresponding _\< agent \>.py_ file.
 
 ## Acknowledgements
 The main library that inspired this work is François Chollet's Keras, followed by the scikit-learn interface.
