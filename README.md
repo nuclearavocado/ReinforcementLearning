@@ -46,6 +46,7 @@ Features in service of the second goal:
 
 ## Update Info
 :rocket: **2020-03-21** - Launch!
+:flag: **2020-04-17** - Overhaul to bring in line with SpinningUp PyTorch release
 
 ## Requirements
 - pytorch=1.3.1
