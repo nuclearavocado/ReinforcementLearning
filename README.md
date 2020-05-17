@@ -37,7 +37,7 @@ Features in service of the second goal:
 - [ ] A2C (Advantage Actor-Critic)
 - [ ] [NPG](https://papers.nips.cc/paper/2073-a-natural-policy-gradient.pdf) (Natural Policy Gradient)
 - [ ] [TRPO](https://arxiv.org/abs/1502.05477) (Trust Region Policy Optimization)
-- [ ] [PPO](https://arxiv.org/abs/1707.06347) (Proximal Policy Optimization)
+- [x] [PPO](https://arxiv.org/abs/1707.06347) (Proximal Policy Optimization)
 - [ ] [DQN](https://arxiv.org/abs/1312.5602) (Deep Q-Learning Network)
 - [ ] [DDPG](https://arxiv.org/abs/1509.02971) (Deep Deterministic Policy Gradient)
 - [ ] [HER](https://arxiv.org/abs/1707.01495) (Hindsight Experience Replay)
@@ -48,6 +48,8 @@ Features in service of the second goal:
 :rocket: **2020-03-21** - Launch!
 
 :triangular_flag_on_post: **2020-04-17** - Overhaul to bring in line with SpinningUp PyTorch release
+
+:triangular_flag_on_post: **2020-05-17** - Push overhaul and add PPO
 
 ## Requirements
 - pytorch=1.3.1
