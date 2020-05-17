@@ -1,3 +1,9 @@
+# Libraries
+import torch
+import torch.optim as optim
+# Local
+from agents import reinforce
+
 '''
     Algorithm:      VPG with GAE (Vanilla Policy Gradient with Generalized
                     Advantage Estimation)
@@ -7,38 +13,45 @@
     Institution:    University of California, Berkeley
 '''
 
-# Local
-import action_value_functions
-from agents.actor_critic import ActorCritic
+class VPG(reinforce.REINFORCE):
 
-class VPG(ActorCritic):
-    def __init__(self, args, env, env_params, logger, buffer, policy, actor=None, critic=None):
-        super().__init__(args, env, env_params, logger, buffer, policy, actor, critic)
+    def __init__(self, env, model, buffer, logger, args):
+        super().__init__(env, model, buffer, logger, args)
+        self.vf_optimizer = optim.Adam(self.model.v.parameters(), lr=args.vf_lr)
 
     # ----------------------------------------------------------
     # Functions to be overloaded from the parent class
 
-    def _get_nn_outputs(self, obs):
-        return super()._get_nn_outputs(obs)
+    def _get_nn_outputs(self, o):
+        a, v, logp = self.model.step(o)
+        output = {'action': a, 'value': v, 'log probability': logp}
+        return output
 
-    def _finish_trajectory(self):
-        super()._finish_trajectory()
-
-    def _logs(self):
-        super()._logs()
-
-    def _process_trajectories(self, mb):
-        return super()._process_trajectories(mb)
-
-    def _update_networks(self, mb, retain_graph=False):
-        super()._update_networks(mb, retain_graph=retain_graph)
+    def _update_networks(self, data):
+        super()._update_networks(data)
+        v_l_old = self._compute_critic_loss(data).item()
+        self._update_critic(data)
 
     # ----------------------------------------------------------
     # Algorithm specific functions
 
-    def _compute_advantages(self, rewards, values):
+    def _update_actor(self, data):
+        super()._update_actor(data)
+
+    def _update_critic(self, data):
+        for _ in range(self.args.train_v_iters):
+            self.vf_optimizer.zero_grad()
+            loss_v = self._compute_critic_loss(data)
+            loss_v.backward()
+            self.vf_optimizer.step()
+
+    def _compute_actor_loss(self, data, action_values='adv'):
         '''
-            Generalized Advantage Estimation
+            For actor-critic, the `action_values` are equal to the advantages:
+                q_π(s,a) = A(s,a)
         '''
-        advantages = action_value_functions.GAE_Lambda(rewards, values, self.args.gamma, self.args.lam)
-        return advantages
+        return super()._compute_actor_loss(data, action_values=action_values)
+
+    def _compute_critic_loss(self, data):
+        o, r = data['obs'], data['ret']
+        return ((self.model.v(o) - r)**2).mean()

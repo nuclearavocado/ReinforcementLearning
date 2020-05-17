@@ -1,57 +1,104 @@
 # Local
+import numpy as np
 from utils import printISO8601
 
 class BaseLogger:
-    def __init__(self):
-        self.vars = {}
-        self.buffer = {}
+    """
+        Saves variables into a dictionary at various resolutions, as:
+         - episode averages
+         - epoch averages
+        It then prints out this information every epoch.
+    """
+    def __init__(self, reward_threshold=None):
+        self.reward_threshold = reward_threshold
+        self.vars, self.episode_total, self.epoch_average = {}, {}, {}
+        self.epoch, self.episode, self.iteration = 0, 0, 0
+        self.episode_prev, self.epoch_prev = 0, 0
+        self.episode_start_idx = 0
+        self.episode_ptr = 0 # No. episodes in previous epoch
 
-    def add_scalar(self, key, value):
-        self.vars[key] = value
+    def add_scalars(self, keys, values):
+        # If new episode, get variable averages
+        if self.episode > self.episode_prev:
+            self.finish_episode()
 
-    def average_scalar(self, key, buffer_length=10):
-        value = self.vars[key]
-        average_key = 'average' + ' ' + key
+        '''
+            Add scalar(s) to buffer
+        '''
+        # This function allows multiple scalar keys and values to be passed in
+        # as a list. If only a single key and value is passed in, convert to a
+        # list, then loop through the key-value pairs as normal.
+        if type(values) != list:
+            keys = [keys]
+            values = [values]
+        for key, value in zip(keys, values):
+            # Create the scalar if it doesn't already exist
+            if key not in self.vars:
+                self.vars[key] = []
+            # Add the scalar to the list of tracked variables
+            self.vars[key].append(value)
 
-        # Create an empty list if the key is not being tracked
-        if not average_key in self.buffer:
-            self.buffer[average_key] = []
+    def finish_epoch(self):
+        # Finish up the episode first
+        self.finish_episode()
+        # Calculate variable averages for the epoch
+        for key, value in self.episode_total.items():
+            self.epoch_average[key] = sum(value)/len(value)
+        self.dump_logs() # dump logs
+        self.vars, self.episode_total = {}, {} # reset buffers
+        self.episode_start_idx = 0 # reset pointer
+        self.epoch_prev = self.epoch # update epoch number
 
-        # FIFO buffer of size `buffer_length`
-        if len(self.buffer[average_key]) < buffer_length:
-            self.buffer[average_key].append(value)
-        else:
-            self.buffer[average_key].pop(0) # remove first element
-            self.buffer[average_key].append(value) # add the latest value
-        self.vars[average_key] = sum(self.buffer[average_key])/len(self.buffer[average_key])
+    def finish_episode(self):
+        # Calculate variable averages for the episode
+        for key, value in self.vars.items():
+            # Create the averages if they don't already exist
+            if key not in self.episode_total:
+                self.episode_total[key] = []
+            # The entire history of the variable over the course of the epoch
+            # is stored in the buffer, but we only want the values for this
+            # episode.
+            v = value[self.episode_start_idx:]
+            # Calculate the total episode reward and add to a list of total
+            # episode rewards over the course of the epoch
+            self.episode_total[key].append(sum(v))
+        self.episode_start_idx += len(v) # update the episode index pointer
+        self.episode_prev = self.episode # update episode number
 
-    def dump_logs(self, iteration, log_interval):
+    def dump_logs(self):
         raise NotImplementedError
 
 class TabularLogger(BaseLogger):
     def __init__(self):
         super().__init__()
 
-    def dump_logs(self, iteration, log_interval, reward_threshold=None):
-        if iteration % log_interval == 0:
-            print(f'iteration: {iteration}\t', end='')
-            for key, value in self.vars.items():
-                if isinstance(value, float):
-                    print(f'{key}: {value:.2f}\t', end='')
-                else:
-                    print(f'{key}: {value}\t', end='')
-            print()
-            if (reward_threshold is not None) and (self.vars['episode reward'] >= reward_threshold):
-                print("Solved!")
+    def dump_logs(self):
+        for key, value in self.vars.items():
+            if isinstance(value, float):
+                print(f'{key}: {value:.2f}\t', end='')
+            else:
+                print(f'{key}: {value}\t', end='')
+        print()
+        if (reward_threshold is not None) and (self.vars['epoch average reward'] >= reward_threshold):
+            print("Solved!")
 
-class TensorBoardLogger(TabularLogger):
+class TensorBoardLogger(BaseLogger):
     def __init__(self, args):
         from torch.utils.tensorboard import SummaryWriter
-        super().__init__()
-        dir_name = f"./graphs/{printISO8601().replace(':', '_')}_{args.algo}_{args.env_name}_batch_size_{args.n_batches}_{args.buffer}_{args.model}_{args.policy}"
+        super().__init__(reward_threshold=args.reward_threshold)
+        dir_name = f"./graphs/{printISO8601().replace(':', '_')}_{args.algo}_{args.env}"
         self.writer = SummaryWriter(log_dir=dir_name)
 
-    def dump_logs(self, iteration, log_interval, reward_threshold=None):
-        for key, value in self.vars.items():
-            self.writer.add_scalar(key, value, iteration)
-        super().dump_logs(iteration, log_interval, reward_threshold=reward_threshold)
+    def dump_logs(self):
+        # Add to TensorBoard
+        for k, value in self.episode_total.items():
+            k = 'episode total ' + k
+            for i, v in enumerate(value):
+                self.writer.add_scalar(k, v, self.episode_ptr + i)
+        self.episode_ptr = self.episode
+        for k, v in self.epoch_average.items():
+            k = 'epoch average ' + k
+            self.writer.add_scalar(k, v, self.epoch)
+        # Show the environment is solved if this criterion exists
+        if (self.reward_threshold is not None) and (self.epoch_average['reward'] >= self.reward_threshold):
+            print("Solved!")

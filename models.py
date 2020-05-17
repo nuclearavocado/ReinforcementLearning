@@ -1,46 +1,101 @@
+import numpy as np
+from gym.spaces import Box, Discrete
+# PyTorch
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from gym.spaces import Box, Discrete
+from torch.distributions.normal import Normal
+from torch.distributions.categorical import Categorical
 
-class MLP(nn.Module):
-    def __init__(self, env_params):
+def mlp(sizes, activation, output_activation=nn.Identity):
+    layers = []
+    for j in range(len(sizes)-1):
+        act = activation if j < len(sizes)-2 else output_activation
+        layers += [nn.Linear(sizes[j], sizes[j+1]), act()]
+    return nn.Sequential(*layers)
+
+class Actor(nn.Module):
+
+    def _distribution(self, obs):
+        raise NotImplementedError
+
+    def _log_prob_from_distribution(self, pi, act):
+        raise NotImplementedError
+
+    def forward(self, obs, act=None):
+        # Produce action distributions for given observations, and
+        # optionally compute the log likelihood of given actions under
+        # those distributions.
+        pi = self._distribution(obs)
+        logp_a = None
+        if act is not None:
+            logp_a = self._log_prob_from_distribution(pi, act)
+        return pi, logp_a
+
+
+class MLPCategoricalActor(Actor):
+
+    def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
         super().__init__()
-        self.max_action = env_params['max_action']
-        self.fc1 = nn.Linear(env_params['observations'], 128)
-        self.dropout = nn.Dropout(p=0.6)
-        self.fc2 = nn.Linear(128, env_params['actions'])
-        if isinstance(env_params['action_space'], Box): # Continuous
-            self.log_sigma = nn.Parameter(torch.zeros(1, env_params['actions']))
+        self.logits_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
 
-    def forward(self, x):
-        # Layer 1
-        x = self.fc1(x)
-        x = self.dropout(x)
-        x = F.elu(x)
-        # Layer 2
-        x = self.fc2(x)
-        return x
+    def _distribution(self, obs):
+        logits = self.logits_net(obs)
+        return Categorical(logits=logits)
 
-class Actor(MLP):
-    def __init__(self, env_params):
-        super().__init__(env_params)
+    def _log_prob_from_distribution(self, pi, act):
+        return pi.log_prob(act)
 
-    def forward(self, x):
-        return super().forward(x)
 
-class Critic(nn.Module):
-    def __init__(self, env_params):
+class MLPGaussianActor(Actor):
+
+    def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
         super().__init__()
-        self.fc1 = nn.Linear(env_params['observations'], 128)
-        self.dropout = nn.Dropout(p=0.6)
-        self.fc2 = nn.Linear(128, 1)
+        log_std = -0.5 * np.ones(act_dim, dtype=np.float32)
+        self.log_std = nn.Parameter(torch.as_tensor(log_std))
+        self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
 
-    def forward(self, x):
-        # Layer 1
-        x = self.fc1(x)
-        x = self.dropout(x)
-        x = F.elu(x)
-        # Layer 2
-        x = self.fc2(x)
-        return x
+    def _distribution(self, obs):
+        mu = self.mu_net(obs)
+        std = torch.exp(self.log_std)
+        return Normal(mu, std)
+
+    def _log_prob_from_distribution(self, pi, act):
+        return pi.log_prob(act).sum(axis=-1)    # Last axis sum needed for Torch Normal distribution
+
+
+class MLPCritic(nn.Module):
+
+    def __init__(self, obs_dim, hidden_sizes, activation):
+        super().__init__()
+        self.v_net = mlp([obs_dim] + list(hidden_sizes) + [1], activation)
+
+    def forward(self, obs):
+        return torch.squeeze(self.v_net(obs), -1) # Critical to ensure v has right shape.
+
+
+class MLPActorCritic(nn.Module):
+
+    def __init__(self, observation_space, action_space,
+                 hidden_sizes=(64,64), activation=nn.Tanh, image=False):
+        super().__init__()
+
+        obs_dim = observation_space.shape[0]
+        # policy builder depends on action space
+        if isinstance(action_space, Box):
+            self.pi = MLPGaussianActor(obs_dim, action_space.shape[0], hidden_sizes, activation)
+        elif isinstance(action_space, Discrete):
+            self.pi = MLPCategoricalActor(obs_dim, action_space.n, hidden_sizes, activation)
+        # build value function
+        self.v = MLPCritic(obs_dim, hidden_sizes, activation)
+
+    def step(self, obs):
+        obs = torch.as_tensor(obs, dtype=torch.float32) # convert from numpy to tensor
+        with torch.no_grad():
+            pi = self.pi._distribution(obs)
+            a = pi.sample()
+            logp_a = self.pi._log_prob_from_distribution(pi, a)
+            v = self.v(obs)
+        return a.numpy(), v.numpy(), logp_a.numpy()
+
+    def act(self, obs):
+        return self.step(obs)[0]

@@ -1,9 +1,9 @@
-import torch
 import numpy as np
-
-EPS = np.finfo(np.float32).eps.item()
-
 import time
+import tensorflow as tf
+from gym.spaces import Box, Discrete
+
+# Custom utils
 
 def printISO8601():
     '''
@@ -29,17 +29,44 @@ def printISO8601():
     ISO8601 = yr + '-' + mth + '-' + day + 'T' + hr + ':' + min + ':' + sec + tz
     return ISO8601
 
-def normalize(X):
-    # Batch
-    if isinstance(X, list):
-        for i, x in enumerate(X):
-            X[i] = _compute_norm(x)
-        return X
-    # No batch
-    else:
-        return _compute_norm(X)
+def tic():
+    return time.time()
 
-def _compute_norm(x):
-    mu = x.mean()
-    sigma = x.std()
-    return (x - mu) / (sigma + EPS)
+def toc(tic):
+    print(f"Time: {time.time() - tic}")
+
+# Core utils
+
+def combined_shape(length, shape=None):
+    if shape is None:
+        return (length,)
+    return (length, shape) if np.isscalar(shape) else (length, *shape)
+
+def count_vars(module):
+    return sum([np.prod(p.shape) for p in module.parameters()])
+
+# TRPO
+
+def keys_as_sorted_list(dict):
+    return sorted(list(dict.keys()))
+
+def values_as_sorted_list(dict):
+    return [dict[k] for k in keys_as_sorted_list(dict)]
+
+def flat_concat(xs):
+    return tf.concat([tf.reshape(x,(-1,)) for x in xs], axis=0)
+
+def flat_grad(f, params):
+    return flat_concat(tf.gradients(xs=params, ys=f))
+
+def hessian_vector_product(f, params):
+    # for H = grad**2 f, compute Hx
+    g = flat_grad(f, params)
+    x = tf.compat.v1.placeholder(tf.float32, shape=g.shape)
+    return x, flat_grad(tf.reduce_sum(g*x), params)
+
+def assign_params_from_flat(x, params):
+    flat_size = lambda p : int(np.prod(p.shape.as_list())) # the 'int' is important for scalars
+    splits = tf.split(x, [flat_size(p) for p in params])
+    new_params = [tf.reshape(p_new, p.shape) for p, p_new in zip(params, splits)]
+    return tf.group([tf.compat.v1.assign(p, p_new) for p, p_new in zip(params, new_params)])
