@@ -4,8 +4,8 @@ import gym
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default='CartPole-v1')
-    parser.add_argument('--algo', type=str, default='vpg',
-                        help='which RL algorithm to use (default: vpg)')
+    parser.add_argument('--algo', type=str, default='reinforce',
+                        help='which RL algorithm to use (default: reinforce)')
     parser.add_argument('--render', action='store_true',
                         help='render the environment')
     parser.add_argument('--image', action='store_true',
