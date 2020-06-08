@@ -149,10 +149,7 @@ def _update(self):
         data = self.buffer.get()
         self._update_networks(data)
 ```
-<<<<<<< HEAD
 
-=======
->>>>>>> bd84f1f875fd72b93df0e920d465e6f5a0a137ff
 Each RL-algorithm then has its own way in which it performs _\_get_nn_outputs()_ and _\_update_networks()_, and these functions are overloaded in the _\<Agent\>_ class in the corresponding _\<agent\>.py_ file.
 
 ## Acknowledgements
