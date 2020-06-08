@@ -69,20 +69,18 @@ class BaseLogger:
         raise NotImplementedError
 
 class TabularLogger(BaseLogger):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, reward_threshold=None):
+        super().__init__(reward_threshold=reward_threshold)
 
     def dump_logs(self):
-        for key, value in self.vars.items():
-            if isinstance(value, float):
-                print(f'{key}: {value:.2f}\t', end='')
-            else:
-                print(f'{key}: {value}\t', end='')
-        print()
-        if (reward_threshold is not None) and (self.vars['epoch average reward'] >= reward_threshold):
+        # Print epoch average reward and if environment is completed to console
+        print(f"reward {self.epoch_average['reward']:.2f}")
+        # Show the environment is solved if this criterion exists
+        if (self.reward_threshold is not None) and (self.epoch_average['reward'] >= self.reward_threshold):
+            print()
             print("Solved!")
 
-class TensorBoardLogger(BaseLogger):
+class TensorBoardLogger(TabularLogger):
     def __init__(self, args):
         from torch.utils.tensorboard import SummaryWriter
         super().__init__(reward_threshold=args.reward_threshold)
@@ -90,6 +88,8 @@ class TensorBoardLogger(BaseLogger):
         self.writer = SummaryWriter(log_dir=dir_name)
 
     def dump_logs(self):
+        # Print to console
+        super().dump_logs()
         # Add to TensorBoard
         for k, value in self.episode_total.items():
             k = 'episode total ' + k
@@ -99,6 +99,3 @@ class TensorBoardLogger(BaseLogger):
         for k, v in self.epoch_average.items():
             k = 'epoch average ' + k
             self.writer.add_scalar(k, v, self.epoch)
-        # Show the environment is solved if this criterion exists
-        if (self.reward_threshold is not None) and (self.epoch_average['reward'] >= self.reward_threshold):
-            print("Solved!")

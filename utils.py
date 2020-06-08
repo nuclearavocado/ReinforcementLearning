@@ -1,6 +1,5 @@
 import numpy as np
 import time
-import tensorflow as tf
 from gym.spaces import Box, Discrete
 
 # Custom utils

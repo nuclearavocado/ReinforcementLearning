@@ -3,6 +3,8 @@ import torch
 import utils
 import scipy.signal
 
+# TODO: Unify Q-Learning buffers with policy gradient buffers
+
 def discount_cumsum(x, discount):
     """
     magic from rllab for computing discounted cumulative sums of vectors.
@@ -21,12 +23,14 @@ def discount_cumsum(x, discount):
     return scipy.signal.lfilter([1], [1, float(-discount)], x[::-1], axis=0)[::-1]
 
 class BaseBuffer:
+
     """
     A basic buffer for storing trajectories experienced by an agent interacting
     with the environment.
     """
 
     def __init__(self, size=4000, obs_dim=None, act_dim=None, gamma=0.99):
+        # TODO: Convert to dictionary
         self.obs_buf = np.zeros(utils.combined_shape(size, obs_dim), dtype=np.float32)
         self.act_buf = np.zeros(utils.combined_shape(size, act_dim), dtype=np.float32)
         self.rew_buf = np.zeros(size, dtype=np.float32)
@@ -46,8 +50,7 @@ class BaseBuffer:
         """
         Append one timestep of agent-environment interaction to the buffer.
         """
-        o, r, a = o, r, \
-                  outputs['action']
+        a = outputs['a']
         self.obs_buf[self.ptr] = o
         self.act_buf[self.ptr] = a
         self.rew_buf[self.ptr] = r
@@ -56,8 +59,8 @@ class BaseBuffer:
         """
         Call this at the end of a trajectory, or when one gets cut off
         by an epoch ending. This looks back over the buffer to where the
-        trajectory started, and performs various calculations on the to use as
-        targets for the neural networks.
+        trajectory started, and performs various calculations on to use as
+        targets for the neural networks, e.g. rewards-to-go.
         """
         path_slice = slice(self.path_start_idx, self.ptr)
         self._process_trajectory(path_slice, last_val)
@@ -82,10 +85,10 @@ class BaseBuffer:
         raise NotImplementedError
 
 class PolicyGradientBuffer(BaseBuffer):
+
     """
-    A buffer for storing trajectories experienced by a VPG agent interacting
-    with the environment, and using Generalized Advantage Estimation (GAE-Lambda)
-    for calculating the advantages of state-action pairs.
+    A buffer for storing trajectories experienced by a REINFORCE agent
+    interacting with the environment.
     """
 
     def __init__(self, size=4000, obs_dim=None, act_dim=None, gamma=0.99):
@@ -94,13 +97,13 @@ class PolicyGradientBuffer(BaseBuffer):
 
     def store(self, o, r, outputs):
         """
-        Append one timestep of agent-environment interaction to the buffer.
+            Append one timestep of agent-environment interaction to the buffer.
         """
         super().store(o, r, outputs)
 
     def _store_transition(self, o, r, outputs):
         super()._store_transition(o, r, outputs)
-        logp = outputs['log probability']
+        logp = outputs['logp']
         self.logp_buf[self.ptr] = logp
 
     def finish_path(self, last_val=0):
@@ -108,7 +111,7 @@ class PolicyGradientBuffer(BaseBuffer):
 
     def _process_trajectory(self, path_slice, last_val):
         """
-        Computes the rewards-to-go for each state.
+            Computes the rewards-to-go for each state.
         """
         rews = np.append(self.rew_buf[path_slice], last_val)
         self._rewards_to_go(path_slice, rews)
@@ -125,8 +128,9 @@ class PolicyGradientBuffer(BaseBuffer):
         return data
 
 class ActorCriticBuffer(PolicyGradientBuffer):
+
     """
-    A buffer for storing trajectories experienced by an Actor Critic agent
+    A buffer for storing trajectories experienced by an Actor-Critic agent
     interacting with the environment, and using Generalized Advantage Estimation
     (GAE-Lambda) for calculating the advantages of state-action pairs.
     """
@@ -145,7 +149,7 @@ class ActorCriticBuffer(PolicyGradientBuffer):
 
     def _store_transition(self, o, r, outputs):
         super()._store_transition(o, r, outputs)
-        v = outputs['value']
+        v = outputs['v']
         self.val_buf[self.ptr] = v
 
     def finish_path(self, last_val=0):
@@ -185,3 +189,37 @@ class ActorCriticBuffer(PolicyGradientBuffer):
         self.adv_buf = (self.adv_buf - adv_mean) / adv_std
         data["adv"] = self.adv_buf
         return data
+
+class QLearningReplayBuffer:
+
+    """
+    A buffer for storing trajectories experienced by a Q-Learning agent
+    interacting with the environment.
+    """
+
+    def __init__(self, size=int(1e6), obs_dim=None, act_dim=None):
+        self.obs_buf = np.zeros(utils.combined_shape(size, obs_dim), dtype=np.float32)
+        self.obs2_buf = np.zeros(utils.combined_shape(size, obs_dim), dtype=np.float32)
+        self.acts_buf = np.zeros(utils.combined_shape(size, act_dim), dtype=np.float32)
+        self.rews_buf = np.zeros(size, dtype=np.float32)
+        self.dones_buf = np.zeros(size, dtype=np.float32)
+        self.ptr, self.size, self.max_size = 0, 0, size
+
+    def store(self, o, r, o2, d, outputs):
+        a = outputs['a']
+        self.obs_buf[self.ptr] = o
+        self.obs2_buf[self.ptr] = o2
+        self.acts_buf[self.ptr] = a
+        self.rews_buf[self.ptr] = r
+        self.dones_buf[self.ptr] = d
+        self.ptr = (self.ptr+1) % self.max_size
+        self.size = min(self.size+1, self.max_size)
+
+    def sample_batch(self, batch_size=32):
+        idxs = np.random.randint(0, self.size, size=batch_size)
+        batch = dict(obs=self.obs_buf[idxs],
+                     obs2=self.obs2_buf[idxs],
+                     acts=self.acts_buf[idxs],
+                     rews=self.rews_buf[idxs],
+                     dones=self.dones_buf[idxs])
+        return {k: torch.as_tensor(v, dtype=torch.float32) for k,v in batch.items()}
