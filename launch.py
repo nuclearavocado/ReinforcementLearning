@@ -133,10 +133,7 @@ elif args.algo in args.q_learning:
         # Action limit for clamping
         # Critically: assumes all dimensions share the same bound!
         args.act_limit = env.action_space.high[0]
-    if args.algo == "dqn":
-        from agents.dqn import DQN
-        agent = DQN(env, model, buffer, logger, args)
-    elif args.algo == "ddpg":
+    if args.algo == "ddpg":
         from agents.ddpg import DDPG
         agent = DDPG(env, model, buffer, logger, args)
     elif args.algo == "td3":
